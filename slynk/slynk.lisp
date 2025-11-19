@@ -1269,10 +1269,13 @@ point the thread terminates and CHANNEL is closed."
            (delete thread (mconn.active-threads connection) :count 1)))
     (singlethreaded-connection)))
 
+(defparameter *event-hook* nil)
+
 (defun dispatch-event (connection event)
   "Handle an event triggered either by Emacs or within Lisp."
   (log-event "dispatch-event: ~s~%" event)
-  (destructure-case event
+  (or (run-hook-until-success *event-hook* connection event)
+   (destructure-case event
     ((:emacs-rex form package thread-id id &rest extra-rex-options)
      (let ((thread (thread-for-evaluation connection thread-id)))
        (cond (thread
@@ -1316,7 +1319,7 @@ point the thread terminates and CHANNEL is closed."
     ((:reader-error packet condition)
      (encode-message `(:reader-error ,packet
                                      ,(safe-condition-message condition))
-                     (current-socket-io)))))
+                     (current-socket-io))))))
 
 
 (defun send-event (thread event)
