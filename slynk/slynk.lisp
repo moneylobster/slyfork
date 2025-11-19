@@ -181,6 +181,12 @@ include some arbitrary initial value like NIL."
   (dolist (function functions)
     (apply function arguments)))
 
+(defun run-hook-until-success (functions &rest arguments)
+  "Call each of FUNCTIONS with ARGUMENTS, stop if any function returns
+a truthy value"
+  (loop for hook in functions
+          thereis (apply hook arguments)))
+
 (defvar *new-connection-hook* '()
   "This hook is run each time a connection is established.
 The connection structure is given as the argument.
